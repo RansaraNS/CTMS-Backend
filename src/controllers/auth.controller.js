@@ -27,7 +27,7 @@ export const creatAdmin = async (req,res) =>{
     });
 
     res.status(201).json({
-      message: "Admin created successfully ✅",
+      message: "Admin created successfully",
       admin: { name: admin.name, email: admin.email, role: admin.role }
     });
   } catch (err) {

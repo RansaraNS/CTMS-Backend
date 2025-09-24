@@ -21,7 +21,7 @@ const interviewSchema = new mongoose.Schema({
     required: true
   },
   interviewers: [{
-    type: String, // Interviewer names or emails
+    type: String,
     trim: true
   }],
   meetingLink: {
@@ -40,11 +40,12 @@ const interviewSchema = new mongoose.Schema({
     culturalFit: { type: Number, min: 1, max: 5 },
     overallRating: { type: Number, min: 1, max: 5 },
     notes: { type: String, trim: true },
-    submittedBy: { type: String, trim: true }, // Team lead name
+    submittedBy: { type: String, trim: true },
     outcome: {
       type: String,
       enum: ["passed", "failed", "pending", "recommended-next-round"]
-    }
+    },
+    submittedAt: { type: Date, default: Date.now }
   },
   reminderSent: {
     type: Boolean,

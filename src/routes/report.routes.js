@@ -1,17 +1,19 @@
-import express from "express";
-import {
-  getDashboardStats,
-  getCandidateReports,
-  getInterviewReports,
-  getRejectedCandidatesReport
-} from "../controllers/report.controller.js";
-import { requireAuth } from "../middleware/auth.middleware.js";
+// import express from "express";
+// import {
+//   getDashboardStats,
+//   getCandidateReports,
+//   getInterviewReports,
+//   getRejectedCandidatesReport,
+//   getAnalytics
+// } from "../controllers/report.controller.js";
+// import { requireAdminOrHR } from "../middleware/auth.middleware.js";
 
-const router = express.Router();
+// const router = express.Router();
 
-router.get("/dashboard", requireAuth, getDashboardStats);
-router.get("/candidates", requireAuth, getCandidateReports);
-router.get("/interviews", requireAuth, getInterviewReports);
-router.get("/rejected", requireAuth, getRejectedCandidatesReport);
+// router.get("/dashboard", requireAdminOrHR, getDashboardStats);
+// router.get("/analytics", requireAdminOrHR, getAnalytics);
+// router.get("/candidates", requireAdminOrHR, getCandidateReports);
+// router.get("/interviews", requireAdminOrHR, getInterviewReports);
+// router.get("/rejected", requireAdminOrHR, getRejectedCandidatesReport);
 
-export default router;
+// export default router;

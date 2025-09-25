@@ -30,17 +30,17 @@ const candidateSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["new", "interviewed", "rejected", "hired", "terminated"],
+    enum: ["new", "scheduled", "rejected", "hired", "terminated"],
     default: "new"
   },
   source: {
     type: String,
     trim: true
   },
-  resume: {
-    type: String, // URL to resume file
-    trim: true
-  },
+  // resume: {
+  //   type: String, // URL to resume file
+  //   trim: true
+  // },
   notes: {
     type: String,
     trim: true

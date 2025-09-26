@@ -10,4 +10,5 @@ router.get("/interviews/excel",ReportController.downloadInterviewsExcel);
 router.get("/candidate/:candidateId", ReportController.downloadCandidateInterviewsReport);
 
 
+
 export default router;

@@ -134,7 +134,7 @@ export const updateHr = async (req, res) => {
   }
 };
 
-// get latest hr
+// get latest hr//
 export const getLatestHrs = async (req, res) => {
   try {
     if (req.user.role !== "admin") {

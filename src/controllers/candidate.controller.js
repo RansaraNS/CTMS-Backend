@@ -484,3 +484,73 @@ export const exportCandidates = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// Add this to your candidate.controller.js
+export const getDashboardStats = async (req, res) => {
+  try {
+    const totalCandidates = await Candidate.countDocuments();
+    const newCandidates = await Candidate.countDocuments({ status: 'new' });
+    const interviewedCandidates = await Candidate.countDocuments({ status: 'scheduled' });
+    const hiredCandidates = await Candidate.countDocuments({ status: 'hired' });
+    const rejectedCandidates = await Candidate.countDocuments({ status: 'rejected' });
+    
+    // Get today's interviews
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const todayInterviews = await Interview.countDocuments({
+      interviewDate: { $gte: today, $lt: tomorrow }
+    });
+    
+    // Get upcoming interviews (future dates)
+    const upcomingInterviews = await Interview.countDocuments({
+      interviewDate: { $gte: new Date() }
+    });
+
+    res.json({
+      totalCandidates,
+      newCandidates,
+      interviewedCandidates,
+      hiredCandidates,
+      rejectedCandidates,
+      todayInterviews,
+      upcomingInterviews
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Add this function to your interview controller
+export const getCandidatesWithoutInterviews = async (req, res) => {
+  try {
+    // Get all candidates with scheduled interviews
+    const interviews = await Interview.find({ status: 'scheduled' }).select('candidate');
+    const scheduledCandidateIds = interviews.map(interview => interview.candidate.toString());
+
+    // Find candidates not in the scheduled list
+    const availableCandidates = await Candidate.find({
+      _id: { $nin: scheduledCandidateIds }
+    }).select('firstName lastName email position');
+
+    res.json({ candidates: availableCandidates });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+// Get only new candidates for scheduling interviews
+export const getNewCandidates = async (req, res) => {
+  try {
+    const candidates = await Candidate.find({ status: 'new' })
+      .select('firstName lastName email position')
+      .sort({ createdAt: -1 });
+
+    res.json({ candidates });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

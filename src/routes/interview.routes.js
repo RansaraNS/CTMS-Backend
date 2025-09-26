@@ -1,3 +1,4 @@
+// In your interview.routes.js
 import express from "express";
 import {
   scheduleInterview,
@@ -5,7 +6,9 @@ import {
   getInterviewById,
   updateInterviewFeedback,
   cancelInterview,
-  rescheduleInterview
+  rescheduleInterview,
+  getUpcomingInterviews,
+  deleteInterview // Add this import
 } from "../controllers/interview.controller.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 
@@ -13,9 +16,11 @@ const router = express.Router();
 
 router.post("/", requireAuth, scheduleInterview);
 router.get("/", requireAuth, getInterviews);
+router.get("/upcoming", requireAuth, getUpcomingInterviews);
 router.get("/:id", requireAuth, getInterviewById);
 router.put("/:id/feedback", requireAuth, updateInterviewFeedback);
 router.put("/:id/cancel", requireAuth, cancelInterview);
 router.put("/:id/reschedule", requireAuth, rescheduleInterview);
+router.delete("/:id", requireAuth, deleteInterview); // Add delete route
 
 export default router;

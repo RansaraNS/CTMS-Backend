@@ -5,6 +5,7 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
 import candidateRoutes from "./routes/candidate.routes.js";
 import interviewRoutes from "./routes/interview.routes.js";
+import reportgenerateRoutes from "./routes/reportgenerate.routes.js";
 // import reportRoutes from "./routes/report.routes.js";
 
 
@@ -21,6 +22,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/candidates", candidateRoutes);
 app.use("/api/interviews", interviewRoutes);
 app.use("/assets",express.static("./src/public"));
+app.use("/api/report",reportgenerateRoutes)
 
 // app.use("/api/reports", reportRoutes);
 

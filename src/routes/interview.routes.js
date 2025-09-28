@@ -8,7 +8,7 @@ import {
   cancelInterview,
   rescheduleInterview,
   getUpcomingInterviews,
-  deleteInterview // Add this import
+  deleteInterview 
 } from "../controllers/interview.controller.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 
@@ -21,6 +21,6 @@ router.get("/:id", requireAuth, getInterviewById);
 router.put("/:id/feedback", requireAuth, updateInterviewFeedback);
 router.put("/:id/cancel", requireAuth, cancelInterview);
 router.put("/:id/reschedule", requireAuth, rescheduleInterview);
-router.delete("/:id", requireAuth, deleteInterview); // Add delete route
+router.delete("/:id", requireAuth, deleteInterview); 
 
 export default router;

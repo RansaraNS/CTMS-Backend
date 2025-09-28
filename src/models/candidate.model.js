@@ -37,10 +37,10 @@ const candidateSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  // resume: {
-  //   type: String, // URL to resume file
-  //   trim: true
-  // },
+  cv: {
+    type: String, 
+    trim: true
+  },
   notes: {
     type: String,
     trim: true

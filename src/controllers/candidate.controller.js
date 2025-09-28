@@ -1,29 +1,247 @@
 // controllers/candidate.controller.js
 import Candidate from "../models/candidate.model.js";
 import Interview from "../models/interview.model.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from 'url';
+
+// Get directory name for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 // Add new candidate with enhanced validation
+// export const addCandidate = async (req, res) => {
+//   try {
+//     const { firstName, lastName, email, phone, position, source, cv, notes, skills } = req.body;
+
+//     // Validate required fields
+//     if (!firstName || !lastName || !email || !position) {
+//       return res.status(400).json({
+//         message: "First name, last name, email, and position are required"
+//       });
+//     }
+
+//     // Email validation
+//     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//     if (!emailRegex.test(email)) {
+//       return res.status(400).json({ message: "Invalid email format" });
+//     }
+
+//     // Check if candidate already exists
+//     const existingCandidate = await Candidate.findOne({ email });
+//     if (existingCandidate) {
+//       return res.status(400).json({
+//         message: "Candidate already exists in system",
+//         existingCandidate: {
+//           id: existingCandidate._id,
+//           name: `${existingCandidate.firstName} ${existingCandidate.lastName}`,
+//           status: existingCandidate.status,
+//           position: existingCandidate.position,
+//           createdAt: existingCandidate.createdAt
+//         }
+//       });
+//     }
+
+//     const candidate = await Candidate.create({
+//       firstName,
+//       lastName,
+//       email,
+//       phone,
+//       position,
+//       source,
+//       resume,
+//       notes,
+//       experience,
+//       skills: skills ? (Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim())) : [],
+//       cv: req.file ? `/uploads/cv/${req.file.filename}` : null, // save file path
+
+//       addedBy: req.user._id,
+//       lastUpdatedBy: req.user._id
+//     });
+
+//     const populatedCandidate = await Candidate.findById(candidate._id)
+//       .populate('addedBy', 'name email');
+
+//     res.status(201).json({
+//       message: "Candidate added successfully",
+//       candidate: populatedCandidate
+//     });
+//   } catch (err) {
+//     if (err.name === 'ValidationError') {
+//       const errors = Object.values(err.errors).map(error => error.message);
+//       return res.status(400).json({ message: errors.join(', ') });
+//     }
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+
+// export const addCandidate = async (req, res) => {
+//   try {
+//     const { firstName, lastName, email, phone, position, source, notes, skills, experience } = req.body;
+
+//     // Validate required fields
+//     if (!firstName || !lastName || !email || !position) {
+//       return res.status(400).json({
+//         message: "First name, last name, email, and position are required"
+//       });
+//     }
+
+//     // Email validation
+//     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//     if (!emailRegex.test(email)) {
+//       return res.status(400).json({ message: "Invalid email format" });
+//     }
+
+//     // Check if candidate already exists
+//     const existingCandidate = await Candidate.findOne({ email });
+//     if (existingCandidate) {
+//       return res.status(400).json({
+//         message: "Candidate already exists in system",
+//         existingCandidate: {
+//           id: existingCandidate._id,
+//           name: `${existingCandidate.firstName} ${existingCandidate.lastName}`,
+//           status: existingCandidate.status,
+//           position: existingCandidate.position,
+//           createdAt: existingCandidate.createdAt
+//         }
+//       });
+//     }
+
+//     // Create new candidate
+//     const candidate = await Candidate.create({
+//       firstName,
+//       lastName,
+//       email,
+//       phone,
+//       position,
+//       source,
+//       notes,
+//       experience,
+//       skills: skills ? (Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim())) : [],
+//       cv: req.file ? `/uploads/cv/${req.file.filename}` : null, // store CV path
+//       addedBy: req.user._id,
+//       lastUpdatedBy: req.user._id
+//     });
+
+//     const populatedCandidate = await Candidate.findById(candidate._id)
+//       .populate('addedBy', 'name email');
+
+//     res.status(201).json({
+//       message: "Candidate added successfully",
+//       candidate: populatedCandidate
+//     });
+//   } catch (err) {
+//     if (err.name === 'ValidationError') {
+//       const errors = Object.values(err.errors).map(error => error.message);
+//       return res.status(400).json({ message: errors.join(', ') });
+//     }
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+
+// export const addCandidate = async (req, res) => {
+//   try {
+//     const { firstName, lastName, email, phone, position, source, notes, skills, experience } = req.body;
+
+//     // Validate required fields
+//     if (!firstName || !lastName || !email || !position) {
+//       return res.status(400).json({
+//         message: "First name, last name, email, and position are required"
+//       });
+//     }
+
+//     // Email validation
+//     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//     if (!emailRegex.test(email)) {
+//       return res.status(400).json({ message: "Invalid email format" });
+//     }
+
+//     // Check if candidate already exists
+//     const existingCandidate = await Candidate.findOne({ email });
+//     if (existingCandidate) {
+//       return res.status(400).json({
+//         message: "Candidate already exists in system",
+//         existingCandidate: {
+//           id: existingCandidate._id,
+//           name: `${existingCandidate.firstName} ${existingCandidate.lastName}`,
+//           status: existingCandidate.status,
+//           position: existingCandidate.position,
+//           createdAt: existingCandidate.createdAt
+//         }
+//       });
+//     }
+
+//     // Create new candidate
+//     const candidate = await Candidate.create({
+//       firstName,
+//       lastName,
+//       email,
+//       phone,
+//       position,
+//       source,
+//       notes,
+//       experience,
+//       skills: skills ? (Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim())) : [],
+//       cv: req.file ? `/uploads/cv/${req.file.filename}` : null,
+//       addedBy: req.user._id,
+//       lastUpdatedBy: req.user._id
+//     });
+
+//     const populatedCandidate = await Candidate.findById(candidate._id)
+//       .populate('addedBy', 'name email');
+
+//     res.status(201).json({
+//       message: "Candidate added successfully",
+//       candidate: populatedCandidate
+//     });
+//   } catch (err) {
+//     // Remove uploaded file if error occurs
+//     if (req.file) {
+//       fs.unlinkSync(req.file.path);
+//     }
+    
+//     if (err.name === 'ValidationError') {
+//       const errors = Object.values(err.errors).map(error => error.message);
+//       return res.status(400).json({ message: errors.join(', ') });
+//     }
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
 export const addCandidate = async (req, res) => {
   try {
-    const { firstName, lastName, email, phone, position, source, resume, notes, experience, skills, currentCompany, expectedSalary, noticePeriod } = req.body;
+    const { firstName, lastName, email, phone, position, source, notes, skills, experience } = req.body;
 
     // Validate required fields
     if (!firstName || !lastName || !email || !position) {
-      return res.status(400).json({ 
-        message: "First name, last name, email, and position are required" 
+      // Remove uploaded file if validation fails
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(400).json({
+        message: "First name, last name, email, and position are required"
       });
     }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
       return res.status(400).json({ message: "Invalid email format" });
     }
 
     // Check if candidate already exists
     const existingCandidate = await Candidate.findOne({ email });
     if (existingCandidate) {
-      return res.status(400).json({ 
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(400).json({
         message: "Candidate already exists in system",
         existingCandidate: {
           id: existingCandidate._id,
@@ -35,6 +253,7 @@ export const addCandidate = async (req, res) => {
       });
     }
 
+    // Create new candidate
     const candidate = await Candidate.create({
       firstName,
       lastName,
@@ -42,13 +261,10 @@ export const addCandidate = async (req, res) => {
       phone,
       position,
       source,
-      resume,
       notes,
       experience,
       skills: skills ? (Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim())) : [],
-      currentCompany,
-      expectedSalary,
-      noticePeriod,
+      cv: req.file ? `/uploads/cv/${req.file.filename}` : null,
       addedBy: req.user._id,
       lastUpdatedBy: req.user._id
     });
@@ -61,11 +277,110 @@ export const addCandidate = async (req, res) => {
       candidate: populatedCandidate
     });
   } catch (err) {
+    // Remove uploaded file if error occurs
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    
     if (err.name === 'ValidationError') {
       const errors = Object.values(err.errors).map(error => error.message);
       return res.status(400).json({ message: errors.join(', ') });
     }
     res.status(500).json({ message: err.message });
+  }
+};
+
+// Add this new function to serve CV files
+// export const getCandidateCV = async (req, res) => {
+//   try {
+//     const candidate = await Candidate.findById(req.params.id);
+    
+//     if (!candidate) {
+//       return res.status(404).json({ message: "Candidate not found" });
+//     }
+
+//     if (!candidate.cv) {
+//       return res.status(404).json({ message: "CV not found for this candidate" });
+//     }
+
+//     // Extract filename from the stored path
+//     const filename = candidate.cv.split('/').pop();
+//     const filePath = path.join('uploads', 'cv', filename);
+
+//     // Check if file exists
+//     if (!fs.existsSync(filePath)) {
+//       return res.status(404).json({ message: "CV file not found on server" });
+//     }
+
+//     // Set appropriate headers
+//     res.setHeader('Content-Type', 'application/pdf');
+//     res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+
+//     // Stream the file
+//     const fileStream = fs.createReadStream(filePath);
+//     fileStream.pipe(res);
+
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+export const getCandidateCV = async (req, res) => {
+  try {
+    const candidate = await Candidate.findById(req.params.id);
+    
+    if (!candidate) {
+      return res.status(404).json({ message: "Candidate not found" });
+    }
+
+    if (!candidate.cv) {
+      return res.status(404).json({ message: "CV not found for this candidate" });
+    }
+
+    // Extract filename from the stored path
+    const filename = candidate.cv.split('/').pop();
+    const uploadsDir = path.join(process.cwd(), 'uploads', 'cv');
+    const filePath = path.join(uploadsDir, filename);
+
+    console.log('Looking for CV file at:', filePath);
+
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      console.error('CV file not found at path:', filePath);
+      return res.status(404).json({ 
+        message: "CV file not found on server",
+        storedPath: candidate.cv,
+        actualPath: filePath
+      });
+    }
+
+    // Get file stats
+    const stats = fs.statSync(filePath);
+    if (stats.size === 0) {
+      return res.status(404).json({ message: "CV file is empty" });
+    }
+
+    // Set appropriate headers
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+    res.setHeader('Content-Length', stats.size);
+
+    // Stream the file
+    const fileStream = fs.createReadStream(filePath);
+    
+    fileStream.on('error', (error) => {
+      console.error('Error streaming file:', error);
+      res.status(500).json({ message: 'Error streaming CV file' });
+    });
+
+    fileStream.pipe(res);
+
+  } catch (err) {
+    console.error('Error in getCandidateCV:', err);
+    res.status(500).json({ 
+      message: "Failed to retrieve CV",
+      error: err.message 
+    });
   }
 };
 
@@ -83,7 +398,7 @@ export const quickScan = async (req, res) => {
     if (phone) query.phone = phone;
 
     const candidate = await Candidate.findOne(query);
-    
+
     if (candidate) {
       return res.json({
         exists: true,
@@ -112,11 +427,11 @@ export const quickScan = async (req, res) => {
 // Get all candidates with advanced filtering and pagination
 export const getCandidates = async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 10, 
-      status, 
-      search, 
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      search,
       position,
       source,
       experienceMin,
@@ -124,7 +439,7 @@ export const getCandidates = async (req, res) => {
       sortBy = 'createdAt',
       sortOrder = 'desc'
     } = req.query;
-    
+
     const query = {};
 
     // Status filter
@@ -225,11 +540,133 @@ export const getCandidate = async (req, res) => {
 };
 
 // Update candidate
+// export const updateCandidate = async (req, res) => {
+//   try {
+//     const {
+//       firstName, lastName, email, phone, position, source, resume, notes,
+//       experience, skills, currentCompany, expectedSalary, noticePeriod
+//     } = req.body;
+
+//     const candidate = await Candidate.findById(req.params.id);
+//     if (!candidate) {
+//       return res.status(404).json({ message: "Candidate not found" });
+//     }
+
+//     // Check if email is being changed and if it already exists
+//     if (email && email !== candidate.email) {
+//       const existingCandidate = await Candidate.findOne({ email });
+//       if (existingCandidate && existingCandidate._id.toString() !== req.params.id) {
+//         return res.status(400).json({
+//           message: "Email already exists in system"
+//         });
+//       }
+//     }
+
+//     // Update fields
+//     const updateFields = {
+//       firstName: firstName || candidate.firstName,
+//       lastName: lastName || candidate.lastName,
+//       email: email || candidate.email,
+//       phone: phone || candidate.phone,
+//       position: position || candidate.position,
+//       source: source || candidate.source,
+//       resume: resume || candidate.resume,
+//       notes: notes || candidate.notes,
+//       experience: experience !== undefined ? experience : candidate.experience,
+//       skills: skills ? (Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim())) : candidate.skills,
+//       currentCompany: currentCompany || candidate.currentCompany,
+//       expectedSalary: expectedSalary || candidate.expectedSalary,
+//       noticePeriod: noticePeriod || candidate.noticePeriod,
+//       lastUpdatedBy: req.user._id,
+//       updatedAt: new Date()
+//     };
+
+//     const updatedCandidate = await Candidate.findByIdAndUpdate(
+//       req.params.id,
+//       updateFields,
+//       { new: true, runValidators: true }
+//     ).populate('addedBy', 'name email')
+//       .populate('lastUpdatedBy', 'name email');
+
+//     res.json({
+//       message: "Candidate updated successfully",
+//       candidate: updatedCandidate
+//     });
+//   } catch (err) {
+//     if (err.name === 'ValidationError') {
+//       const errors = Object.values(err.errors).map(error => error.message);
+//       return res.status(400).json({ message: errors.join(', ') });
+//     }
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+
+// Update candidate
+// export const updateCandidate = async (req, res) => {
+//   try {
+//     const {
+//       firstName, lastName, email, phone, position, source, notes,
+//       experience, skills, currentCompany, expectedSalary, noticePeriod
+//     } = req.body;
+
+//     const candidate = await Candidate.findById(req.params.id);
+//     if (!candidate) {
+//       return res.status(404).json({ message: "Candidate not found" });
+//     }
+
+//     // Check if email is being changed and already exists
+//     if (email && email !== candidate.email) {
+//       const existingCandidate = await Candidate.findOne({ email });
+//       if (existingCandidate && existingCandidate._id.toString() !== req.params.id) {
+//         return res.status(400).json({ message: "Email already exists in system" });
+//       }
+//     }
+
+//     const updateFields = {
+//       firstName: firstName || candidate.firstName,
+//       lastName: lastName || candidate.lastName,
+//       email: email || candidate.email,
+//       phone: phone || candidate.phone,
+//       position: position || candidate.position,
+//       source: source || candidate.source,
+//       notes: notes || candidate.notes,
+//       experience: experience !== undefined ? experience : candidate.experience,
+//       skills: skills ? (Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim())) : candidate.skills,
+//       currentCompany: currentCompany || candidate.currentCompany,
+//       expectedSalary: expectedSalary || candidate.expectedSalary,
+//       noticePeriod: noticePeriod || candidate.noticePeriod,
+//       lastUpdatedBy: req.user._id,
+//       updatedAt: new Date()
+//     };
+
+//     // If new CV uploaded
+//     if (req.file) {
+//       updateFields.cv = `/uploads/cv/${req.file.filename}`;
+//     }
+
+//     const updatedCandidate = await Candidate.findByIdAndUpdate(
+//       req.params.id,
+//       updateFields,
+//       { new: true, runValidators: true }
+//     ).populate('addedBy', 'name email')
+//      .populate('lastUpdatedBy', 'name email');
+
+//     res.json({
+//       message: "Candidate updated successfully",
+//       candidate: updatedCandidate
+//     });
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+// Update candidate with CV handling
 export const updateCandidate = async (req, res) => {
   try {
-    const { 
-      firstName, lastName, email, phone, position, source, resume, notes,
-      experience, skills, currentCompany, expectedSalary, noticePeriod 
+    const {
+      firstName, lastName, email, phone, position, source, notes,
+      experience, skills, currentCompany, expectedSalary, noticePeriod
     } = req.body;
 
     const candidate = await Candidate.findById(req.params.id);
@@ -237,17 +674,20 @@ export const updateCandidate = async (req, res) => {
       return res.status(404).json({ message: "Candidate not found" });
     }
 
-    // Check if email is being changed and if it already exists
+    // Check if email is being changed and already exists
     if (email && email !== candidate.email) {
       const existingCandidate = await Candidate.findOne({ email });
       if (existingCandidate && existingCandidate._id.toString() !== req.params.id) {
-        return res.status(400).json({ 
-          message: "Email already exists in system" 
-        });
+        return res.status(400).json({ message: "Email already exists in system" });
       }
     }
 
-    // Update fields
+    // Store old CV path for cleanup
+    let oldCVPath = null;
+    if (req.file && candidate.cv) {
+      oldCVPath = path.join('uploads', 'cv', candidate.cv.split('/').pop());
+    }
+
     const updateFields = {
       firstName: firstName || candidate.firstName,
       lastName: lastName || candidate.lastName,
@@ -255,7 +695,6 @@ export const updateCandidate = async (req, res) => {
       phone: phone || candidate.phone,
       position: position || candidate.position,
       source: source || candidate.source,
-      resume: resume || candidate.resume,
       notes: notes || candidate.notes,
       experience: experience !== undefined ? experience : candidate.experience,
       skills: skills ? (Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim())) : candidate.skills,
@@ -266,6 +705,11 @@ export const updateCandidate = async (req, res) => {
       updatedAt: new Date()
     };
 
+    // If new CV uploaded
+    if (req.file) {
+      updateFields.cv = `/uploads/cv/${req.file.filename}`;
+    }
+
     const updatedCandidate = await Candidate.findByIdAndUpdate(
       req.params.id,
       updateFields,
@@ -273,18 +717,24 @@ export const updateCandidate = async (req, res) => {
     ).populate('addedBy', 'name email')
      .populate('lastUpdatedBy', 'name email');
 
+    // Remove old CV file after successful update
+    if (oldCVPath && fs.existsSync(oldCVPath)) {
+      fs.unlinkSync(oldCVPath);
+    }
+
     res.json({
       message: "Candidate updated successfully",
       candidate: updatedCandidate
     });
   } catch (err) {
-    if (err.name === 'ValidationError') {
-      const errors = Object.values(err.errors).map(error => error.message);
-      return res.status(400).json({ message: errors.join(', ') });
+    // Remove uploaded file if error occurs
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
     }
     res.status(500).json({ message: err.message });
   }
 };
+
 
 // Update candidate status
 export const updateCandidateStatus = async (req, res) => {
@@ -313,8 +763,8 @@ export const updateCandidateStatus = async (req, res) => {
     }
 
     if (notes) {
-      updateData.notes = candidate.notes ? 
-        `${candidate.notes}\n[${new Date().toLocaleString()}] Status changed to ${status}: ${notes}` 
+      updateData.notes = candidate.notes ?
+        `${candidate.notes}\n[${new Date().toLocaleString()}] Status changed to ${status}: ${notes}`
         : `[${new Date().toLocaleString()}] Status changed to ${status}: ${notes}`;
     }
 
@@ -344,8 +794,8 @@ export const deleteCandidate = async (req, res) => {
     // Check if candidate has interviews
     const interviewCount = await Interview.countDocuments({ candidate: req.params.id });
     if (interviewCount > 0) {
-      return res.status(400).json({ 
-        message: "Cannot delete candidate with existing interviews. Please cancel interviews first." 
+      return res.status(400).json({
+        message: "Cannot delete candidate with existing interviews. Please cancel interviews first."
       });
     }
 
@@ -378,7 +828,7 @@ export const bulkUpdateStatus = async (req, res) => {
     }
 
     const updateData = { status, lastUpdatedBy: req.user._id };
-    
+
     if (status === 'rejected' && reason) {
       updateData.rejectionReason = reason;
       updateData.rejectionDate = new Date();
@@ -440,7 +890,7 @@ export const getCandidateAnalytics = async (req, res) => {
 export const exportCandidates = async (req, res) => {
   try {
     const { status, format = 'csv' } = req.query;
-    
+
     const query = {};
     if (status && status !== 'all') {
       query.status = status;
@@ -470,12 +920,12 @@ export const exportCandidates = async (req, res) => {
 
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', `attachment; filename=candidates-${new Date().toISOString().split('T')[0]}.csv`);
-      
+
       // Convert to CSV
       const headers = Object.keys(csvData[0]).join(',');
       const rows = csvData.map(row => Object.values(row).map(field => `"${field}"`).join(','));
       const csv = [headers, ...rows].join('\n');
-      
+
       res.send(csv);
     } else {
       res.json({ candidates });
@@ -493,17 +943,17 @@ export const getDashboardStats = async (req, res) => {
     const interviewedCandidates = await Candidate.countDocuments({ status: 'scheduled' });
     const hiredCandidates = await Candidate.countDocuments({ status: 'hired' });
     const rejectedCandidates = await Candidate.countDocuments({ status: 'rejected' });
-    
+
     // Get today's interviews
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
+
     const todayInterviews = await Interview.countDocuments({
       interviewDate: { $gte: today, $lt: tomorrow }
     });
-    
+
     // Get upcoming interviews (future dates)
     const upcomingInterviews = await Interview.countDocuments({
       interviewDate: { $gte: new Date() }

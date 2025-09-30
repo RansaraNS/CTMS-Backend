@@ -6,11 +6,8 @@ const generateToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "1d" });
 };
 
-
 // Create Admin
-
-
-export const creatAdmin = async (req,res) =>{
+export const creatAdmin = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
@@ -86,6 +83,66 @@ export const login = async (req, res) => {
         role: user.role,
       },
     });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+//newly
+// Get all HRs (Admin only)
+export const getHrs = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied. Admins only." });
+    }
+    const hrs = await User.find({ role: 'hr' }).select('-password');
+    res.status(200).json(hrs);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Delete HR (Admin only)
+export const deleteHr = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied. Admins only." });
+    }
+    const { id } = req.params;
+    const hr = await User.findByIdAndDelete(id);
+    if (!hr) return res.status(404).json({ message: 'HR not found' });
+    res.status(200).json({ message: 'HR deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Update HR (Admin only)
+export const updateHr = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied. Admins only." });
+    }
+    const { id } = req.params;
+    const { name, email, password, role } = req.body;
+    const updatedHr = await User.findByIdAndUpdate(id, { name, email, password, role }, { new: true, runValidators: true }).select('-password');
+    if (!updatedHr) return res.status(404).json({ message: 'HR not found' });
+    res.status(200).json({ message: 'HR updated successfully', hr: updatedHr });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// get latest hr//
+export const getLatestHrs = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied. Admins only." });
+    }
+    const latestHrs = await User.find({ role: 'hr' }).sort({ createdAt: -1 }).limit(3).select('-password');
+    if (!latestHrs.length) return res.status(404).json({ message: 'No HRs found' });
+    res.status(200).json(latestHrs);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

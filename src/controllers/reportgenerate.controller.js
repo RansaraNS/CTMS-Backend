@@ -7,6 +7,30 @@ import fs from "fs";
 import path from "path";
 
 class ReportController {
+
+    static async CandidatesReport(req, res) {
+        try {
+            const candidates = await Candidate.find()
+                .populate("addedBy", "firstName lastName email")
+                .populate("lastUpdatedBy", "firstName lastName email")
+                .lean();
+
+            // ✅ Return JSON instead of PDF
+            return res.status(200).json({
+                success: true,
+                count: candidates.length,
+                data: candidates,
+            });
+
+        } catch (error) {
+            console.error("❌ JSON Response Error:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Failed to fetch candidates data",
+            });
+        }
+    }
+
     static async downloadCandidatesReport(req, res) {
         try {
             const candidates = await Candidate.find()
@@ -189,6 +213,47 @@ class ReportController {
             }
         }
     }
+
+    static async InterviewsReport(req, res) {
+        try {
+            const interviews = await Interview.find()
+                .populate("candidate", "firstName lastName email phone position")
+                .populate("scheduledBy", "firstName lastName email")
+                .lean();
+
+            // ✅ Return JSON instead of PDF
+            return res.status(200).json({
+                success: true,
+                count: interviews.length,
+                data: interviews.map((iData, index) => ({
+                    no: index + 1,
+                    candidateName: iData.candidate
+                        ? `${iData.candidate.firstName} ${iData.candidate.lastName}`
+                        : "N/A",
+                    email: iData.candidate?.email || "N/A",
+                    phone: iData.candidate?.phone || "N/A",
+                    interviewDate: iData.interviewDate
+                        ? new Date(iData.interviewDate).toISOString()
+                        : "N/A",
+                    interviewType: iData.interviewType || "N/A",
+                    status: iData.status || "N/A",
+                    scheduledBy: iData.scheduledBy
+                        ? `${iData.scheduledBy.firstName} ${iData.scheduledBy.lastName}`
+                        : "N/A",
+                })),
+            });
+
+        } catch (error) {
+            console.error("❌ JSON Response Error:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Failed to fetch Interviews data",
+            });
+        }
+    }
+
+
+
 
     static async downloadInterviewsReport(req, res) {
         try {

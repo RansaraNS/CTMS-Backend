@@ -45,7 +45,31 @@ const interviewSchema = new mongoose.Schema({
       type: String,
       enum: ["passed", "failed", "pending", "recommended-next-round"]
     },
-    submittedAt: { type: Date, default: Date.now }
+    submittedAt: { type: Date, default: Date.now },
+
+     ableToJoinImmediately: {
+      type: String,
+      enum: ["yes", "no", "with-notice"],
+      trim: true
+    },
+    noticePeriod: {
+      type: String,
+      trim: true
+    },
+    okayWithOnsite: {
+      type: String,
+      enum: ["yes", "no", "hybrid"],
+      trim: true
+    },
+    salaryExpectation: {
+      type: String,
+      trim: true
+    },
+    relocationRequired: {
+      type: String,
+      enum: ["yes", "no"],
+      trim: true
+    },
   },
   reminderSent: {
     type: Boolean,

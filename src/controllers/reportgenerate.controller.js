@@ -237,8 +237,8 @@ class ReportController {
                         : "N/A",
                     interviewType: iData.interviewType || "N/A",
                     status: iData.status || "N/A",
-                    scheduledBy: iData.scheduledBy
-                        ? `${iData.scheduledBy.firstName} ${iData.scheduledBy.lastName}`
+                         interviewer: iData.interviewers && iData.interviewers.length > 0 
+                        ? iData.interviewers.join(", ") 
                         : "N/A",
                 })),
             });

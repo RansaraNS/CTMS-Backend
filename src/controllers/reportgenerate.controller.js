@@ -38,9 +38,13 @@ class ReportController {
                 .populate("lastUpdatedBy", "firstName lastName email")
                 .lean();
 
-            const doc = new PDFDocument({ margin: 40, size: "A4" });
+            const doc = new PDFDocument({ 
+                margin: 30, 
+                size: "A4",
+                bufferPages: true 
+            });
 
-            // --- RESPONSE HEADERS ---
+            // Response Headers
             res.setHeader("Content-Type", "application/pdf");
             res.setHeader(
                 "Content-Disposition",
@@ -49,88 +53,194 @@ class ReportController {
 
             doc.pipe(res);
 
-            // --- HEADER (Logo + Title + Date) ---
-            const logoPath = path.join(process.cwd(), "src", "images", "company_logo.jpg");
-            const headerY = 30;
+            const pageWidth = doc.page.width;
+            const pageHeight = doc.page.height;
 
+            // ===== HEADER SECTION =====
+            const logoPath = path.join(process.cwd(), "src", "images", "company_logo.jpg");
+            
+            // Add logo
             if (fs.existsSync(logoPath)) {
-                doc.image(logoPath, 40, headerY, { width: 80 });
-            } else {
-                console.warn("Logo not found at:", logoPath);
+                try {
+                    doc.image(logoPath, 50, 40, { width: 50, height: 50 });
+                } catch (error) {
+                    console.error('Error adding logo:', error);
+                }
             }
 
+            // Company Name
             doc.font("Helvetica-Bold")
-                .fontSize(18)
-                .text("Candidates Details Report", 0, headerY + 20, { align: "center" });
+                .fontSize(22)
+                .fillColor("#000000")
+                .text("Gamage Recruiters (PVT) Ltd.", 108, 45);
 
-            const generatedDate = moment().format("YYYY-MM-DD HH:mm:ss");
+            // Company Details
+            doc.font("Helvetica")
+                .fontSize(8)
+                .fillColor("#000000")
+                .text("612A, Galle Road, Panadura, Sri Lanka. | gamagerecruiters@gmail.com", 110, 70);
+
+            // Report Title
             doc.font("Helvetica")
                 .fontSize(10)
-                .text(`Report Generated: ${generatedDate}`, 0, headerY + 45, { align: "center" });
+                .fillColor("#000000")
+                .text("Candidates Details Report", 110, 85);
 
-            doc.moveDown(5);
+            // Summary Box (Right Side)
+            const summaryX = pageWidth - 150;
+            
+            doc.font("Helvetica-Bold")
+                .fontSize(9)
+                .fillColor("#000000")
+                .text("Report Summary", summaryX, 45);
 
-            // --- TABLE HEADERS ---
-            const tableTop = doc.y;
-            const colWidths = [20, 80,150, 60,100, 60, 60];
+            const generatedDate = moment().format("YYYY-MM-DD");
+            const generatedTime = moment().format("HH:mm:ss");
+            
+            doc.font("Helvetica")
+                .fontSize(8)
+                .fillColor("#000000")
+                .text(`Generated: ${generatedDate}`, summaryX, 60)
+                .text(`Time: ${generatedTime}`, summaryX, 73)
+                .text(`Total Records: ${candidates.length}`, summaryX, 86);
+
+            // Decorative Lines
+            doc.strokeColor("#050C9C")
+                .lineWidth(1.5)
+                .moveTo(50, 110)
+                .lineTo(pageWidth - 50, 110)
+                .stroke();
+
+            doc.strokeColor("#3ABEF9")
+                .lineWidth(0.8)
+                .moveTo(50, 112)
+                .lineTo(pageWidth - 50, 112)
+                .stroke();
+
+            // ===== STATUS SUMMARY =====
+            const statusCounts = candidates.reduce((acc, c) => {
+                acc[c.status] = (acc[c.status] || 0) + 1;
+                return acc;
+            }, {});
+
+            let statsY = 125;
+            let statsX = 50;
+            
+            // ===== TABLE =====
+            const tableTop = statsY;
+            const colWidths = [25, 80, 130, 60, 90, 60, 55];
             const headers = ["No", "Name", "Email", "Phone", "Position", "Status", "Source"];
 
-            let x = 40;
-            doc.rect(x, tableTop, colWidths.reduce((a, b) => a + b, 0), 20)
-                .fill("#0074D9")
-                .fillColor("white")
-                .font("Helvetica-Bold")
-                .fontSize(10);
+            // Table Header
+            let x = 50;
+            doc.rect(50, tableTop, colWidths.reduce((a, b) => a + b, 0), 25)
+                .fillAndStroke("#ffffff", "#3572EF");
+
+            doc.font("Helvetica-Bold")
+                .fontSize(9)
+                .fillColor("#000000");
 
             headers.forEach((header, i) => {
-                doc.text(header, x + 3, tableTop + 6, { width: colWidths[i] - 6 });
+                doc.text(header, x + 5, tableTop + 8, { 
+                    width: colWidths[i] - 10, 
+                    align: "center" 
+                });
                 x += colWidths[i];
             });
-            doc.fillColor("black");
 
-            // --- TABLE ROWS ---
-            let y = tableTop + 20;
+            // Table Rows
+            let y = tableTop + 25;
+            const rowHeight = 35;
+
             candidates.forEach((c, i) => {
-                x = 40;
-                const rowHeight = 40;
-
-                // Alternate row background
-                if (i % 2 === 0) {
-                    doc.rect(40, y, colWidths.reduce((a, b) => a + b, 0), rowHeight)
-                        .fill("#f2f2f2")
-                        .fillColor("black");
+                // Check if we need a new page
+                if (y > pageHeight - 100) {
+                    doc.addPage();
+                    y = 50;
                 }
 
+                x = 50;
+
+                // Alternating row colors
+                if (i % 2 === 0) {
+                    doc.rect(50, y, colWidths.reduce((a, b) => a + b, 0), rowHeight)
+                        .fillAndStroke("#F7FAFC", "#E2E8F0")
+                        .lineWidth(0.5);
+                } else {
+                    doc.rect(50, y, colWidths.reduce((a, b) => a + b, 0), rowHeight)
+                        .fillAndStroke("#FFFFFF", "#E2E8F0")
+                        .lineWidth(0.5);
+                }
+
+                // No column with special styling
+                doc.rect(50, y, colWidths[0], rowHeight)
+                    .fillAndStroke("#ffffff", "#3572EF")
+                    .lineWidth(0.5);
+
                 const row = [
-                    i + 1,
-                    `${c.firstName} ${c.lastName}`,
-                    c.email || "N/A",
-                    c.phone || "N/A",
-                    c.position || "N/A",
-                    c.status || "N/A",
-                    c.source || "N/A",
+                    { text: (i + 1).toString(), color: "#050C9C", bold: true },
+                    { text: `${c.firstName} ${c.lastName}`, color: "#000000", bold: true },
+                    { text: c.email || "N/A", color: "#4A5568", bold: false },
+                    { text: c.phone || "N/A", color: "#4A5568", bold: false },
+                    { text: c.position || "N/A", color: "#3572EF", bold: false },
+                    { text: c.status || "N/A", color: "#000000", bold: true },
+                    { text: c.source || "N/A", color: "#4A5568", bold: false }
                 ];
 
                 row.forEach((cell, j) => {
-                    doc.font("Helvetica").fontSize(9).fillColor("black");
-                    doc.text(cell.toString(), x + 3, y + 6, { width: colWidths[j] - 6 });
+                    const font = cell.bold ? "Helvetica-Bold" : "Helvetica";
+                    doc.font(font)
+                        .fontSize(8)
+                        .fillColor(cell.color);
+
+                    const textY = y + (rowHeight - 8) / 2;
+                    const align = j === 0 ? "center" : "left";
+                    
+                    doc.text(cell.text, x + 5, textY, { 
+                        width: colWidths[j] - 10,
+                        align: align,
+                        ellipsis: true
+                    });
                     x += colWidths[j];
                 });
 
                 y += rowHeight;
-
-                if (y > doc.page.height - 80) {
-                    doc.addPage();
-                    y = 40;
-                }
             });
 
-            // --- SUMMARY BELOW TABLE ---
-            doc.font("Helvetica-Bold")
-                .fontSize(12)
-                .text(`Total Candidates: ${candidates.length}`, 40, y + 20);
+            // ===== FOOTER =====
+            const footerY = pageHeight - 70;
+            const footerY2 = pageHeight - 55;
+
+            // Decorative line
+            doc.strokeColor("#3ABEF9")
+                .lineWidth(1.0)
+                .moveTo(50, footerY)
+                .lineTo(pageWidth - 50, footerY)
+                .stroke();
+
+            // Footer text
+            doc.font("Helvetica")
+                .fontSize(8)
+                .fillColor("#718096")
+                .text(
+                    "Generated by Candidate Tracking Management System",
+                    0,
+                    footerY2,
+                    { align: "center", width: pageWidth }
+                );
+
+            const year = new Date().getFullYear();
+            doc.fontSize(7)
+                .fillColor("#A0AEC0")
+                .text(
+                    `© ${year} GR IT Solutions. All rights reserved.`,
+                    0,
+                    footerY2 + 10,
+                    { align: "center", width: pageWidth }
+                );
 
             doc.end();
+
         } catch (error) {
             console.error("❌ PDF Generation Error:", error);
             if (!res.headersSent) {
@@ -262,102 +372,218 @@ class ReportController {
                 .populate("scheduledBy", "firstName lastName email")
                 .lean();
 
-            const doc = new PDFDocument({ margin: 40, size: "A4" });
+            const doc = new PDFDocument({ 
+                margin: 30, 
+                size: "A4",
+                bufferPages: true 
+            });
 
-            // --- RESPONSE HEADERS ---
+            // Response Headers
             res.setHeader("Content-Type", "application/pdf");
             res.setHeader(
                 "Content-Disposition",
-                "attachment; filename=Interviews_Report.pdf"
+                "attachment; filename=Interviews_Details_Report.pdf"
             );
 
             doc.pipe(res);
 
-            // --- HEADER (Logo + Title + Date) ---
-            const logoPath = path.join(process.cwd(), "src", "images", "company_logo.jpg");
-            const headerY = 30;
+            const pageWidth = doc.page.width;
+            const pageHeight = doc.page.height;
 
+            // ===== HEADER SECTION =====
+            const logoPath = path.join(process.cwd(), "src", "images", "company_logo.jpg");
+            
+            // Add logo
             if (fs.existsSync(logoPath)) {
-                doc.image(logoPath, 40, headerY, { width: 80 });
-            } else {
-                console.warn("Logo not found at:", logoPath);
+                try {
+                    doc.image(logoPath, 50, 40, { width: 50, height: 50 });
+                } catch (error) {
+                    console.error('Error adding logo:', error);
+                }
             }
 
+            // Company Name
             doc.font("Helvetica-Bold")
-                .fontSize(18)
-                .text("Interviews Details Report", 0, headerY + 20, { align: "center" });
+                .fontSize(22)
+                .fillColor("#000000")
+                .text("Gamage Recruiters (PVT) Ltd.", 108, 45);
 
-            const generatedDate = moment().format("YYYY-MM-DD HH:mm:ss");
+            // Company Details
+            doc.font("Helvetica")
+                .fontSize(8)
+                .fillColor("#000000")
+                .text("612A, Galle Road, Panadura, Sri Lanka. | gamagerecruiters@gmail.com", 110, 70);
+
+            // Report Title
             doc.font("Helvetica")
                 .fontSize(10)
-                .text(`Report Generated: ${generatedDate}`, 0, headerY + 45, { align: "center" });
+                .fillColor("#000000")
+                .text("Interviews Details Report", 110, 85);
 
-            doc.moveDown(5);
+            // Summary Box (Right Side)
+            const summaryX = pageWidth - 150;
+            
+            doc.font("Helvetica-Bold")
+                .fontSize(9)
+                .fillColor("#000000")
+                .text("Report Summary", summaryX, 45);
 
-            // --- TABLE HEADERS ---
-            const tableTop = doc.y;
-            const colWidths = [20, 100, 80, 80, 80, 80, 60];
-            const headers = ["No", "Candidate Name", "Email", "Phone", "Interview Date", "Type", "Status"];
+            const generatedDate = moment().format("YYYY-MM-DD");
+            const generatedTime = moment().format("HH:mm:ss");
+            
+            doc.font("Helvetica")
+                .fontSize(8)
+                .fillColor("#000000")
+                .text(`Generated: ${generatedDate}`, summaryX, 60)
+                .text(`Time: ${generatedTime}`, summaryX, 73)
+                .text(`Total Records: ${interviews.length}`, summaryX, 86);
 
-            let x = 40;
-            doc.rect(x, tableTop, colWidths.reduce((a, b) => a + b, 0), 20)
-                .fill("#0074D9")
-                .fillColor("white")
-                .font("Helvetica-Bold")
-                .fontSize(10);
+            // Decorative Lines
+            doc.strokeColor("#050C9C")
+                .lineWidth(1.5)
+                .moveTo(50, 110)
+                .lineTo(pageWidth - 50, 110)
+                .stroke();
+
+            doc.strokeColor("#3ABEF9")
+                .lineWidth(0.8)
+                .moveTo(50, 112)
+                .lineTo(pageWidth - 50, 112)
+                .stroke();
+
+            // ===== STATUS SUMMARY =====
+            const statusCounts = interviews.reduce((acc, i) => {
+                acc[i.status] = (acc[i.status] || 0) + 1;
+                return acc;
+            }, {});
+
+            let statsY = 125;
+            let statsX = 50;
+            
+
+            // ===== TABLE =====
+            const tableTop = statsY;
+            const colWidths = [25, 90, 110, 60, 90, 70, 55];
+            const headers = ["No", "Candidate", "Email", "Phone", "Date", "Type", "Status"];
+
+            // Table Header
+            let x = 50;
+            doc.rect(50, tableTop, colWidths.reduce((a, b) => a + b, 0), 25)
+                .fillAndStroke("#ffffff", "#3572EF");
+
+            doc.font("Helvetica-Bold")
+                .fontSize(9)
+                .fillColor("#000000");
 
             headers.forEach((header, i) => {
-                doc.text(header, x + 3, tableTop + 6, { width: colWidths[i] - 6 });
+                doc.text(header, x + 5, tableTop + 8, { 
+                    width: colWidths[i] - 10, 
+                    align: "center" 
+                });
                 x += colWidths[i];
             });
-            doc.fillColor("black");
 
-            // --- TABLE ROWS ---
-            let y = tableTop + 20;
+            // Table Rows
+            let y = tableTop + 25;
+            const rowHeight = 35;
+
             interviews.forEach((iData, i) => {
-                x = 40;
-                const rowHeight = 40;
-
-                if (i % 2 === 0) {
-                    doc.rect(40, y, colWidths.reduce((a, b) => a + b, 0), rowHeight)
-                        .fill("#f2f2f2")
-                        .fillColor("black");
+                // Check if we need a new page
+                if (y > pageHeight - 100) {
+                    doc.addPage();
+                    y = 50;
                 }
+
+                x = 50;
+
+                // Alternating row colors
+                if (i % 2 === 0) {
+                    doc.rect(50, y, colWidths.reduce((a, b) => a + b, 0), rowHeight)
+                        .fillAndStroke("#F7FAFC", "#E2E8F0")
+                        .lineWidth(0.5);
+                } else {
+                    doc.rect(50, y, colWidths.reduce((a, b) => a + b, 0), rowHeight)
+                        .fillAndStroke("#FFFFFF", "#E2E8F0")
+                        .lineWidth(0.5);
+                }
+
+                // No column with special styling
+                doc.rect(50, y, colWidths[0], rowHeight)
+                    .fillAndStroke("#ffffff", "#3572EF")
+                    .lineWidth(0.5);
 
                 const candidateName = iData.candidate
                     ? `${iData.candidate.firstName} ${iData.candidate.lastName}`
                     : "N/A";
 
+                const interviewDate = iData.interviewDate 
+                    ? moment(iData.interviewDate).format("MMM DD, YYYY HH:mm")
+                    : "N/A";
+
                 const row = [
-                    i + 1,
-                    candidateName,
-                    iData.candidate?.email || "N/A",
-                    iData.candidate?.phone || "N/A",
-                    iData.interviewDate ? new Date(iData.interviewDate).toLocaleString() : "N/A",
-                    iData.interviewType || "N/A",
-                    iData.status || "N/A",
+                    { text: (i + 1).toString(), color: "#050C9C", bold: true },
+                    { text: candidateName, color: "#000000", bold: true },
+                    { text: iData.candidate?.email || "N/A", color: "#4A5568", bold: false },
+                    { text: iData.candidate?.phone || "N/A", color: "#4A5568", bold: false },
+                    { text: interviewDate, color: "#3572EF", bold: false },
+                    { text: iData.interviewType || "N/A", color: "#000000", bold: false },
+                    { text: iData.status || "N/A", color: "#000000", bold: true }
                 ];
 
                 row.forEach((cell, j) => {
-                    doc.font("Helvetica").fontSize(9).fillColor("black");
-                    doc.text(cell.toString(), x + 3, y + 6, { width: colWidths[j] - 6 });
+                    const font = cell.bold ? "Helvetica-Bold" : "Helvetica";
+                    doc.font(font)
+                        .fontSize(8)
+                        .fillColor(cell.color);
+
+                    const textY = y + (rowHeight - 8) / 2;
+                    const align = j === 0 ? "center" : "left";
+                    
+                    doc.text(cell.text, x + 5, textY, { 
+                        width: colWidths[j] - 10,
+                        align: align,
+                        ellipsis: true
+                    });
                     x += colWidths[j];
                 });
 
                 y += rowHeight;
-
-                if (y > doc.page.height - 80) {
-                    doc.addPage();
-                    y = 40;
-                }
             });
 
-            // --- SUMMARY BELOW TABLE ---
-            doc.font("Helvetica-Bold")
-                .fontSize(12)
-                .text(`Total Interviews: ${interviews.length}`, 40, y + 20);
+            // ===== FOOTER =====
+            const footerY = pageHeight - 70;
+            const footerY2 = pageHeight - 55;
+
+            // Decorative line
+            doc.strokeColor("#3ABEF9")
+                .lineWidth(1.0)
+                .moveTo(50, footerY)
+                .lineTo(pageWidth - 50, footerY)
+                .stroke();
+
+            // Footer text
+            doc.font("Helvetica")
+                .fontSize(8)
+                .fillColor("#718096")
+                .text(
+                    "Generated by Candidate Tracking Management System",
+                    0,
+                    footerY2,
+                    { align: "center", width: pageWidth }
+                );
+
+            const year = new Date().getFullYear();
+            doc.fontSize(7)
+                .fillColor("#A0AEC0")
+                .text(
+                    `© ${year} GR IT Solutions. All rights reserved.`,
+                    0,
+                    footerY2 + 10,
+                    { align: "center", width: pageWidth }
+                );
 
             doc.end();
+
         } catch (error) {
             console.error("❌ PDF Generation Error:", error);
             if (!res.headersSent) {
